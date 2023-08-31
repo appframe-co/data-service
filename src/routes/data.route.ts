@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = res.locals;
+        const { userId, projectId } = req.query as {userId: string, projectId: string};
 
         const data = await DataListController({
             userId,
@@ -25,7 +25,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = res.locals;
+        const { userId, projectId } = req.query as {userId: string, projectId: string};
         let body = req.body;
 
         const data = await NewDataController({
@@ -42,7 +42,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.put('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = res.locals;
+        const { userId, projectId } = req.query as {userId: string, projectId: string};
         let body = req.body;
 
         const data = await EditDataController({
@@ -59,7 +59,7 @@ router.put('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = res.locals;
+        const { userId, projectId } = req.query as {userId: string, projectId: string};
         const { id } = req.params;
 
         const data = await DataController({
@@ -76,7 +76,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = res.locals;
+        const { userId, projectId } = req.query as {userId: string, projectId: string};
         const { id } = req.params;
 
         const data = await DeleteDataController({
