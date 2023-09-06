@@ -1,12 +1,13 @@
 import Data from '@/models/data.model';
 import { TErrorResponse } from '@/types/types';
 
-export default async function CreateData({userId, projectId, body}: any): Promise<TErrorResponse | any> {
+export default async function CreateData({userId, projectId, structureId, doc}: any): Promise<TErrorResponse | any> {
     try {
         const data = await Data.create({
             userId, 
-            projectId, 
-            ...body
+            projectId,
+            structureId,
+            doc
         });
         if (!data) {
             return {error: 'invalid_data'};

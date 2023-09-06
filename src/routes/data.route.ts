@@ -25,13 +25,13 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = req.query as {userId: string, projectId: string};
-        let body = req.body;
+        let {userId, projectId, structureId, doc}  = req.body;
 
         const data = await NewDataController({
             userId,
             projectId,
-            body
+            structureId,
+            doc
         });
 
         res.json(data);
@@ -40,7 +40,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.put('/', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { userId, projectId } = req.query as {userId: string, projectId: string};
         let body = req.body;
