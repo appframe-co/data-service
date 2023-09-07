@@ -4,73 +4,114 @@ import NewDataController from '@/controllers/data/new-data.controller'
 import EditDataController from '@/controllers/data/edit-data.controller'
 import DeleteDataController from '@/controllers/data/delete-data.controller'
 import DataController from '@/controllers/data/data.controller'
+import { TData, TDataInput, TErrorResponse } from '@/types/types';
 
 const router = express.Router();
 
+// function isError(data: TErrorResponse | TData[]): data is TErrorResponse {
+//     return (data as TErrorResponse).error !== undefined;
+// }
+
+// function isData(data: TErrorResponse | {data: TData}): data is {data: TData} {
+//     return (data as {data: TData}).data.id !== undefined;
+// }
+
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = req.query as {userId: string, projectId: string};
+        const { userId, projectId, structureId } = req.query as {userId: string, projectId: string, structureId: string};
 
         const data = await DataListController({
-            userId,
+            createdBy: userId,
             projectId,
-            structureId: req.query.structureId as string
+            structureId
         });
 
         res.json(data);
     } catch (e) {
-        res.json({error: 'error'});
+        let message = String(e);
+
+        if (e instanceof Error) {
+            message = e.message; 
+        }
+
+        res.json({message});
     }
 });
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let {userId, projectId, structureId, doc}  = req.body;
+        let {userId, projectId, structureId, doc}: TDataInput&{userId: string} = req.body;
 
         const data = await NewDataController({
-            userId,
             projectId,
             structureId,
+            createdBy: userId,
+            updatedBy: userId,
             doc
         });
 
         res.json(data);
     } catch (e) {
-        res.json({error: 'error'});
+        let message = String(e);
+
+        if (e instanceof Error) {
+            message = e.message; 
+        }
+
+        res.json({message});
     }
 });
 
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = req.query as {userId: string, projectId: string};
-        let body = req.body;
+        let {id, userId, projectId, structureId, doc}: TDataInput&{userId: string} = req.body;
+
+        if (req.params.id !== id) {
+            throw new Error('id invalid');
+        }
 
         const data = await EditDataController({
-            userId,
+            id,
             projectId,
-            body
+            structureId,
+            createdBy: userId,
+            updatedBy: userId,
+            doc
         });
 
         res.json(data);
     } catch (e) {
-        res.json({error: 'error'});
+        let message = String(e);
+
+        if (e instanceof Error) {
+            message = e.message; 
+        }
+
+        res.json({message});
     }
 });
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, projectId } = req.query as {userId: string, projectId: string};
+        const { userId, projectId, structureId} = req.query as {userId: string, projectId: string, structureId: string};
         const { id } = req.params;
 
         const data = await DataController({
-            userId,
+            createdBy: userId,
             projectId,
+            structureId,
             id
         });
 
         res.json(data);
     } catch (e) {
-        res.json({error: 'error'});
+        let message = String(e);
+
+        if (e instanceof Error) {
+            message = e.message; 
+        }
+
+        res.json({message});
     }
 });
 
@@ -80,14 +121,20 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
         const { id } = req.params;
 
         const data = await DeleteDataController({
-            userId,
+            createdBy: userId,
             projectId,
             id
         });
 
         res.json(data);
     } catch (e) {
-        res.json({error: 'error'});
+        let message = String(e);
+
+        if (e instanceof Error) {
+            message = e.message; 
+        }
+
+        res.json({message});
     }
 });
 

@@ -1,20 +1,21 @@
 import Data from '@/models/data.model';
-import { TErrorResponse } from '@/types/types';
+import { TData, TDataInput, TErrorResponse } from '@/types/types';
 
-export default async function DeleteData(
-    {userId, projectId, id}: any): Promise<TErrorResponse | any> {
+export default async function DeleteData(dataInput: TDataInput): Promise<TErrorResponse | {}> {
     try {
+        const {createdBy, projectId, id} = dataInput;
+
         if (!id) {
             return {error: 'invalid_request'};
         }
 
-        const data: any  = await Data.findOneAndRemove({
-            userId, 
+        const data: TData|null  = await Data.findOneAndRemove({
+            createdBy, 
             projectId, 
             _id: id
         });
         if (!data) {
-            return {error: 'invalid_data'};
+            throw new Error('invalid data');
         }
 
         return {};
