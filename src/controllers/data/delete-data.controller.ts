@@ -6,7 +6,7 @@ export default async function DeleteData(dataInput: TDataInput): Promise<TErrorR
         const {createdBy, projectId, id} = dataInput;
 
         if (!id) {
-            return {error: 'invalid_request'};
+            throw new Error('invalid request');
         }
 
         const data: TData|null  = await Data.findOneAndRemove({

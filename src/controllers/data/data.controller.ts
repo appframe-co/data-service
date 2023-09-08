@@ -1,5 +1,9 @@
 import Data from '@/models/data.model';
-import {TData, TDataInput, TErrorResponse} from '@/types/types';
+import {TData, TDataInput, TErrorResponse, TStructure, TStorage, TDoc} from '@/types/types';
+
+function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
+    return (data as TErrorResponse).error !== undefined;
+}
 
 export default async function DataController(dataInput: TDataInput): Promise<TErrorResponse | {data: TData}> {
     try {
@@ -17,7 +21,12 @@ export default async function DataController(dataInput: TDataInput): Promise<TEr
                 'Content-Type': 'application/json'
             }
         });
-        const {structure} = await resFetchStructure.json();
+        const structureFetch: {structure: TStructure}|TErrorResponse = await resFetchStructure.json();
+        if (isErrorStructure(structureFetch)) {
+            throw new Error('Error structure');
+        }
+
+        const {structure} = structureFetch;
  
         // GET storage
         const resFetchStorage = await fetch(
@@ -30,47 +39,17 @@ export default async function DataController(dataInput: TDataInput): Promise<TEr
         const {storage} = await resFetchStorage.json();
 
         // MERGE storage with data
-        const storageFields:any = {};
-        storage.forEach((s: any) => {
-            const arSrc = s.src.split('/');
-            arSrc.splice(arSrc.length-1, 0, '60x60');
-            const miniSrc = arSrc.join('/');
-
-            const isField = storageFields.hasOwnProperty(s.subjectField);
-            if (isField) {
-                storageFields[s.subjectField].push({
-                    id: s.id,
-                    filename: s.filename,
-                    uuidName: s.uuidName,
-                    width: s.width,
-                    height: s.height,
-                    size: s.size,
-                    mimeType: s.mimeType,
-                    src: s.src,
-                    miniSrc
-                }); 
-            } else {
-                storageFields[s.subjectField] = [{
-                    id: s.id,
-                    filename: s.filename,
-                    uuidName: s.uuidName,
-                    width: s.width,
-                    height: s.height,
-                    size: s.size,
-                    mimeType: s.mimeType,
-                    mediaContentType: s.mediaContentType,
-                    src: s.src,
-                    miniSrc
-                }]; 
+        for (const s of storage) {
+            if (data.doc.hasOwnProperty(s.subjectField) && data.doc[s.subjectField]) {
+                data.doc[s.subjectField].push(s);
+                continue;
             }
-        });
-        for (const [field, value] of Object.entries(storageFields)) {
-            data.doc[field] = value;
+            data.doc[s.subjectField] = [s];
         }
 
         // compare data by structure
-        const codes: string[] = structure.bricks.map((b: any) => b.code);
-        const doc: {[key: string]: any} = {};
+        const codes = structure.bricks.map(b => b.code);
+        const doc: TDoc = {};
         if (data.doc) {
             codes.forEach(code => {
                 doc[code] = data.doc.hasOwnProperty(code) ? data.doc[code] : null;
@@ -87,9 +66,9 @@ export default async function DataController(dataInput: TDataInput): Promise<TEr
             updatedBy: data.updatedBy,
             doc
         };
-
         return {data: output};
     } catch (error) {
+        console.log(error)
         throw error;
     }
 }

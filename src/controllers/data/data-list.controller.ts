@@ -1,5 +1,9 @@
 import Data from '@/models/data.model';
-import {TData, TDataInput, TErrorResponse, TStorage} from '@/types/types';
+import {TData, TDataInput, TDoc, TErrorResponse, TStorage, TStructure} from '@/types/types';
+
+function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
+    return (data as TErrorResponse).error !== undefined;
+}
 
 export default async function DataList(dataInput: TDataInput): Promise<TErrorResponse | {data: TData[], names: string[], codes: string[]}>{
     try {
@@ -23,7 +27,12 @@ export default async function DataList(dataInput: TDataInput): Promise<TErrorRes
                 'Content-Type': 'application/json'
             }
         });
-        const {structure} = await resFetchStructure.json();
+        const structureFetch: {structure: TStructure}|TErrorResponse = await resFetchStructure.json();
+        if (isErrorStructure(structureFetch)) {
+            throw new Error('Error structure');
+        }
+
+        const {structure} = structureFetch;
 
         // MERGE storage with data
         for (const d of data) {
@@ -37,21 +46,18 @@ export default async function DataList(dataInput: TDataInput): Promise<TErrorRes
             const {storage}: {storage: TStorage[]} = await resFetchStorage.json();
 
             for (const s of storage) {
-                const {subjectField} = s;
-
-                if (d.doc[subjectField].hasOwnProperty(s.subjectField)) {
-                    d.doc[subjectField].push(s);
+                if (d.doc.hasOwnProperty(s.subjectField) && d.doc[s.subjectField]) {
+                    d.doc[s.subjectField].push(s);
                     continue;
                 }
-
-                d.doc[subjectField] = [s]; 
+                d.doc[s.subjectField] = [s]; 
             }
         }
 
         // COMPARE data by structure
-        const codes = structure.bricks.map((b: any) => b.code);
+        const codes = structure.bricks.map(b => b.code);
         const result = data.map((d: TData) => {
-            const doc = codes.reduce((acc: {[key: string]: any}, code: string) => {
+            const doc = codes.reduce((acc: TDoc, code: string) => {
                 acc[code] = d.doc.hasOwnProperty(code) ? d.doc[code] : null
 
                 return acc;
@@ -68,7 +74,7 @@ export default async function DataList(dataInput: TDataInput): Promise<TErrorRes
                 doc
             };
         });
-        const names = structure.bricks.map((b: any) => b.name);
+        const names = structure.bricks.map(b => b.name);
 
         return {data: result, names, codes};
     } catch (error) {

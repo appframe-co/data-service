@@ -1,5 +1,9 @@
 import Data from '@/models/data.model';
-import { TData, TDataInput, TErrorResponse } from '@/types/types';
+import { TData, TDataInput, TDoc, TErrorResponse, TStructure } from '@/types/types';
+
+function isErrorStructure(data: TErrorResponse|{structure: TStructure}): data is TErrorResponse {
+    return (data as TErrorResponse).error !== undefined;
+}
 
 export default async function UpdateData(dataInput: TDataInput): Promise<TErrorResponse | {data: TData}> {
     try {
@@ -23,11 +27,16 @@ export default async function UpdateData(dataInput: TDataInput): Promise<TErrorR
                 'Content-Type': 'application/json'
             }
         });
-        const {structure} = await resFetchStructure.json();
+        const structureFetch: {structure: TStructure}|TErrorResponse = await resFetchStructure.json();
+        if (isErrorStructure(structureFetch)) {
+            throw new Error('Error structure');
+        }
+
+        const {structure} = structureFetch;
 
         // compare data by structure
-        const codes: string[] = structure.bricks.map((b: any) => b.code);
-        const doc: {[key: string]: any} = {};
+        const codes = structure.bricks.map(b => b.code);
+        const doc: TDoc = {};
         if (docInput) {
             codes.forEach(code => {
                 doc[code] = docInput.hasOwnProperty(code) ? docInput[code] : null;

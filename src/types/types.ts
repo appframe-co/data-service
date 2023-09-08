@@ -55,3 +55,22 @@ export type TStorage = {
   mediaContentType: string;
   src: string;
 }
+
+export type TStructure = {
+  id: string;
+  name: string;
+  code: string;
+  bricks: TBrick[];
+}
+
+export type TBrick = {
+  type: string;
+  name: string;
+  code: string;
+  validation: TValidationBrick[];
+}
+
+type TValidationBrick = {
+  code: string;
+  value: any;
+}

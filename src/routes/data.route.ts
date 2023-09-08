@@ -4,17 +4,9 @@ import NewDataController from '@/controllers/data/new-data.controller'
 import EditDataController from '@/controllers/data/edit-data.controller'
 import DeleteDataController from '@/controllers/data/delete-data.controller'
 import DataController from '@/controllers/data/data.controller'
-import { TData, TDataInput, TErrorResponse } from '@/types/types';
+import { TDataInput } from '@/types/types';
 
 const router = express.Router();
-
-// function isError(data: TErrorResponse | TData[]): data is TErrorResponse {
-//     return (data as TErrorResponse).error !== undefined;
-// }
-
-// function isData(data: TErrorResponse | {data: TData}): data is {data: TData} {
-//     return (data as {data: TData}).data.id !== undefined;
-// }
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -34,7 +26,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
             message = e.message; 
         }
 
-        res.json({message});
+        res.json({error: 'server_error', description: message});
     }
 });
 
@@ -58,7 +50,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             message = e.message; 
         }
 
-        res.json({message});
+        res.json({error: 'server_error', description: message});
     }
 });
 
@@ -87,7 +79,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             message = e.message; 
         }
 
-        res.json({message});
+        res.json({error: 'server_error', description: message});
     }
 });
 
@@ -111,7 +103,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
             message = e.message; 
         }
 
-        res.json({message});
+        res.json({error: 'server_error', description: message});
     }
 });
 
@@ -134,7 +126,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
             message = e.message; 
         }
 
-        res.json({message});
+        res.json({error: 'server_error', description: message});
     }
 });
 
